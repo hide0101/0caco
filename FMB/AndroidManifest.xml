@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.dmtc"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="17" />
+    <uses-permission android:name="android.permission.BLUETOOTH"></uses-permission>
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"></uses-permission>
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.example.dmtc.TitleActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.example.dmtc.TestActivity"
+            android:label="@string/title_activity_test" >
+        </activity>
+        <activity
+            android:name="com.example.dmtc.TestActivity2"
+            android:label="@string/title_activity_test_activity2" >
+        </activity>
+        <activity 
+            android:name="com.example.dmtc.BTActivity">
+        </activity>
+        <activity 
+            android:name="com.example.dmtc.FormActivity">
+        </activity>
+        <activity
+             android:name="com.example.dmtc.SubActivity">
+        </activity>
+        <activity 
+             android:name="com.example.dmtc.DBActivity">
+        </activity>
+        <activity
+            android:name="com.example.dmtc.MainActivity">
+            
+        </activity>
+        <activity 
+            android:name="com.example.dmtc.Card">
+            
+        </activity>
+    </application>
+</manifest>
