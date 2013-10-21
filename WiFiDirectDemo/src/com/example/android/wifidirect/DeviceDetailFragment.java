@@ -55,7 +55,7 @@ import java.net.Socket;
  */
 public class DeviceDetailFragment extends Fragment implements ConnectionInfoListener {
 
-    protected static final int Message_Transeport_CODE = 20;
+    //protected static final int Message_Transeport_CODE = 20;
     private static View mContentView = null;
     private WifiP2pDevice device;
     private WifiP2pInfo info;
