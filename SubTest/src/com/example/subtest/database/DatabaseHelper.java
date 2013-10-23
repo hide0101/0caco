@@ -56,15 +56,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         addressEntryDao.insert(db, addressEntry);
         
         
-        addressEntry = new AddressEntry();
-        addressEntry.setName("Yamada@Atsuto");
-        addressEntry.setTab(2);
-        addressEntry.setFacebook("akkuma");
-        addressEntry.setLine("akkun");
-        addressEntry.setSkype("epdhi");
-        addressEntryDao.insert(db, addressEntry);
-        
-        
     }
 
     @Override
