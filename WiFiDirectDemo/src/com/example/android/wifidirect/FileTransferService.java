@@ -28,7 +28,7 @@ public class FileTransferService extends IntentService {
     
     public static final String EXTRAS_GROUP_OWNER_ADDRESS = "go_host";
     public static final String EXTRAS_GROUP_OWNER_PORT = "go_port";
-    private String message;
+    private String message="original";
     public FileTransferService(String name) {
         super(name);
     }
@@ -56,6 +56,7 @@ public class FileTransferService extends IntentService {
                 socket.connect((new InetSocketAddress(host, port)), SOCKET_TIMEOUT);
                 Log.d(WiFiDirectActivity.TAG, "Client socket - " + socket.isConnected());
                 OutputStream stream = socket.getOutputStream();
+                message=intent.getStringExtra("SendText");
                 byte[] byteArray = this.message.getBytes("UTF-8");
                 stream.write(byteArray,0,byteArray.length);
                 stream.close();
