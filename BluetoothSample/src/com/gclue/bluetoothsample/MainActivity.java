@@ -3,6 +3,7 @@ package com.gclue.bluetoothsample;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -42,16 +43,12 @@ public class MainActivity extends Activity implements OnClickListener {
 	public static final String ACTION_DISCOVERY_FINISHED = BluetoothAdapter.ACTION_DISCOVERY_FINISHED;
 	private ArrayAdapter<String> pairedDeviceAdapter;
 	private ArrayAdapter<String> nonPairedDeviceAdapter;
-	private Button mButton1;
-	private Button mButton2;
-	private Button mButton3;
-	private Button mButton4;
 	public static final int FIRST= 0;
 	private UUID MY_UUID = UUID.fromString("1111111-0000-1000-1111-00AAEECCAAFF");
 	private ServerThread serverThread;
 	private ClientThread clientThread;
 	private static final String NAME = "BLUETOOTH_ANDROID";
-	private ConnectedThread connection;
+	private ReadWriteModel connection;
 	private EditText editText;
 	private TextView textView;
 	private static final int REQUEST_ENABLE_BT = 123456789;
@@ -62,13 +59,15 @@ public class MainActivity extends Activity implements OnClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		/*
 		mButton2 = (Button) findViewById(R.id.button2);
 		mButton2.setOnClickListener(this);
 		mButton4 = (Button) findViewById(R.id.button4);
 		mButton4.setOnClickListener(this);
 		editText = (EditText) findViewById(R.id.EditText01);
-		textView = (TextView) findViewById(R.id.textView);
 		
+		textView = (TextView) findViewById(R.id.textView);
+		*/
 		mAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mAdapter == null) {
 		} else {
@@ -103,7 +102,13 @@ public class MainActivity extends Activity implements OnClickListener {
 			}
 		}
 	}
-
+	
+	@Override
+	public void onResume() {
+	    super.onResume();
+	    serverThread = new ServerThread();
+		serverThread.start();
+	}
 
 
 	@Override
@@ -219,19 +224,14 @@ public class MainActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View view) {
 		// Get pairringed device list.
-		mAdapter = BluetoothAdapter.getDefaultAdapter();
+		//mAdapter = BluetoothAdapter.getDefaultAdapter();
 		// Lunch Server.
+		/*
 		if (view.equals(mButton2)) {
 			serverThread = new ServerThread();
 			serverThread.start();
 		}
-		// Send message.
-		else if (view.equals(mButton4)) {
-			String message = editText.getText().toString();
-			if (message != null && !message.equals("")) {
-				connection.write(message.getBytes());
-			}
-		}
+			*/
 	}
 	/**
 	 * search BT
@@ -255,6 +255,9 @@ public class MainActivity extends Activity implements OnClickListener {
 			BluetoothServerSocket tmp = null;
 			try {
 				
+				Toast.makeText(getApplicationContext(),"serverthread is called.",
+						Toast.LENGTH_LONG).show();
+				
 				mAdapter = BluetoothAdapter.getDefaultAdapter();
 				tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
 			} catch (IOException e) {
@@ -272,7 +275,6 @@ public class MainActivity extends Activity implements OnClickListener {
 			 * In While　always Client Polling
 			 */
 			while (true) {
-				Log("Polling");
 				try {
 					socket = mmServerSocket.accept();
 
@@ -317,8 +319,10 @@ public class MainActivity extends Activity implements OnClickListener {
 			mmDevice = device;
 
 			try {
-			
-				tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+				Toast.makeText(getApplicationContext(),"clientthread is called.",
+						Toast.LENGTH_LONG).show();
+				
+				tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
 			} catch (Exception e) {
 				Log.i(TAG, "Error:" + e);
 			}
@@ -330,7 +334,6 @@ public class MainActivity extends Activity implements OnClickListener {
 			// End Discovery.
 			mAdapter = BluetoothAdapter.getDefaultAdapter();
 			mAdapter.cancelDiscovery();
-
 			try {
 				// Connect to Server.
 				mmSocket.connect();
@@ -358,84 +361,77 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	
 	public void manageConnectedSocket(BluetoothSocket socket) {
-		Log("Connection");
-		connection = new ConnectedThread(socket);
+		Toast.makeText(getApplicationContext(),"Connection",
+				Toast.LENGTH_LONG).show();
+		connection = new ReadWriteModel(socket);
 		connection.start();
 	}
 
-	
-	private class ConnectedThread extends Thread {
+	public class ReadWriteModel extends Thread {
+		//ソケットに対するI/O処理
+		private final InputStream in;
+		private final OutputStream out;
 		private final BluetoothSocket mmSocket;
-		private final InputStream mmInStream;
-		private final OutputStream mmOutStream;
-
-		public ConnectedThread(BluetoothSocket socket) {
-			Log("ConnectedThread");
+		private String sendText;
+			
+		//コンストラクタの定義
+		public ReadWriteModel(BluetoothSocket socket){
+			sendText = "testText!";
 			mmSocket = socket;
 			InputStream tmpIn = null;
 			OutputStream tmpOut = null;
-
 			try {
-				tmpIn = socket.getInputStream();
-				tmpOut = socket.getOutputStream();
-			} catch (IOException e) {
-			}
-
-			
-			mmInStream = tmpIn;
-			
-			mmOutStream = tmpOut;
+				//接続済みソケットからI/Oストリームをそれぞれ取得
+				tmpIn = mmSocket.getInputStream();
+				tmpOut = mmSocket.getOutputStream();
+				
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}	
+			in = tmpIn;
+			out = tmpOut;
 		}
-
+		
+		public void write(byte[] buf){
+			//Outputストリームへのデータ書き込み
+			try {
+				out.write(buf);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		public void run() {
-			Log("ConnectionThread#run()");
-			byte[] buffer = new byte[1024];
-			int bytes;
-
+			byte[] buf = new byte[1024];
+			int tmpBuf = 0;
+			try {
+				write(sendText.getBytes("UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
-			while (true) {
+			while(true){
 				try {
-					
-					bytes = mmInStream.read(buffer);
-					
-					String readMsg = new String(buffer, 0, bytes, "UTF-8");
-					
-					Log("GET: " + readMsg);
-
-					
-					Message msg = new Message();
-					msg.obj = readMsg;
-					mHandler.sendMessage(msg);
-
+					tmpBuf = in.read(buf);
 				} catch (IOException e) {
-					break;
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-			}
-		}
-
-		
-		public void write(byte[] bytes) {
-			try {
-				mmOutStream.write(bytes);
-			} catch (IOException e) {
-			}
-		}
-
-		
-		public void cancel() {
-			try {
-				mmSocket.close();
-			} catch (IOException e) {
+				if(tmpBuf!=0){
+					try {
+						String rcvText = new String(buf, 0, tmpBuf, "UTF-8");
+						Toast.makeText(getApplicationContext(),"GET:"+rcvText,
+								Toast.LENGTH_LONG).show();
+					} catch (UnsupportedEncodingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				
 			}
 		}
 	}
-
-	final Handler mHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			String readMsg = (String) msg.obj;
-			textView.setText(readMsg);
-			textView.invalidate();
-		}
-	};
-
 }
